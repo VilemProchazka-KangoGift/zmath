@@ -3,7 +3,7 @@
 const config = {
     numRows: 6,
     initialZombieSpeed: 0.1,
-    initialSpawnRate: 8000,
+    initialSpawnRate: 7500,
     maxZombieSpeed: .8,
     minSpawnRate: 4000,
     canvasWidth: 800,
