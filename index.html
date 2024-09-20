@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Math Zombies Game</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            background-color: #ffffff;
+            border: 1px solid #000;
+            display: block;
+            margin: 0 auto;
+        }
+        #hud {
+            margin-top: 10px;
+        }
+        #inputBox {
+            width: 100px;
+            font-size: 16px;
+        }
+        #scoreDisplay {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        #gameOver {
+            font-size: 24px;
+            color: red;
+            display: none;
+        }
+        #restartBtn {
+            font-size: 16px;
+            padding: 5px 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zombie Matika</h1>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="hud">
+        <input type="text" id="inputBox" placeholder="Enter Answer">
+        <!-- Removed the "Shoot" button since shooting happens on Enter key -->
+        <div id="scoreDisplay">Skóre: 0</div>
+        <div id="gameOver">Konec hry!</div>
+        <button id="restartBtn">Znovu</button>
+    </div>
+
+    <!-- Include config.js before game.js -->
+    <script src="config.js"></script>
+    <script src="game.js"></script>
+
+</body>
+</html>
