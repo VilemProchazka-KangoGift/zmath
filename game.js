@@ -1,5 +1,10 @@
 // game.js
 
+// helper functions
+function randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
 // Canvas Setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -60,8 +65,9 @@ let bloodSplatters = [];
 let score = 0;
 let gameOver = false;
 let zombieSpeed = config.initialZombieSpeed;
-let spawnRate = config.initialSpawnRate;
+let spawnRate = (config.initialSpawnRate - config.minSpawnRate) / 2 + config.minSpawnRate;
 let spawnTimer = 0;
+let spawnRateDirection = -1;
 let gameTimer = 0;
 let numberRange = config.initialNumberRange;
 let canShoot = true; // Player can shoot initially
@@ -146,7 +152,7 @@ class Zombie {
         const rowHeight = (config.canvasHeight - config.topPadding * 2) / config.numRows;
         this.x = config.canvasWidth - this.width;
         this.y = config.topPadding + (row * rowHeight) + (rowHeight / 2);
-        this.speed = zombieSpeed;
+        this.speed = zombieSpeed + (randomIntFromInterval(0, 30) / 100);
         this.problem = this.generateProblem();
         this.answer = eval(this.problem);
 
@@ -426,7 +432,16 @@ function gameLoop(timestamp) {
         // Increase Difficulty Over Time
         if (gameTimer > config.difficultyIncreaseInterval) {
             zombieSpeed = Math.min(config.maxZombieSpeed, zombieSpeed + config.zombieSpeedIncrease);
-            spawnRate = Math.max(config.minSpawnRate, spawnRate - config.spawnRateDecrease);
+
+            if(spawnRate < config.minSpawnRate){
+                spawnRateDirection = 1;
+            }
+            else if(spawnRate > config.initialSpawnRate){
+                spawnRateDirection = -1;
+            }
+            
+            spawnRate = spawnRate + spawnRateDirection * config.spawnRateDecrease;
+
             numberRange = Math.min(config.maxNumberRange, numberRange + config.numberRangeIncrease);
             gameTimer = 0;
         }
