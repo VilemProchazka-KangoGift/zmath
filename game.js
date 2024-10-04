@@ -1,9 +1,14 @@
 // game.js
 
-// helper functions
-function randomIntFromInterval(min, max) { // min and max included 
-    return Math.floor(Math.random() * (max - min + 1) + min);
-  }
+// Helper Functions
+function randomIntFromInterval(min, max, skipZeros = true) { // min and max included 
+    let res = Math.floor(Math.random() * (max - min + 1) + min);
+    if(res === 0 && skipZeros){
+        return randomIntFromInterval(min, max, false);
+    }
+
+    return res;
+}
 
 // Canvas Setup
 const canvas = document.getElementById('gameCanvas');
@@ -27,6 +32,13 @@ playerImage.src = 'player.png'; // Replace with your player image filename
 const zombieImage = new Image();
 zombieImage.src = 'zombie.png'; // Replace with your zombie image filename
 
+// New Zombie Type Images
+const ragdollImage = new Image();
+ragdollImage.src = 'ragdoll.png';
+
+const tankImage = new Image();
+tankImage.src = 'tank.png';
+
 const backgroundImage = new Image();
 backgroundImage.src = 'background.png'; // Replace with your background image filename
 
@@ -45,6 +57,11 @@ const sounds = {
     spawn: new Audio('spawn.mp3'),
     step: new Audio('step.mp3'),
     missed: new Audio('missed.mp3'),
+    // New Zombie Type Sounds
+    ragdollSpawn: new Audio('meow.mp3'),
+    ragdollDeath: new Audio('catscream.mp3'),
+    tankSpawn: new Audio('wroom.mp3'),
+    tankDeath: new Audio('explosion.mp3'),
 };
 
 // Preload Sound Files
@@ -58,6 +75,12 @@ sounds.missed.volume = 1;
 sounds.step.volume = 1;
 sounds.spawn.volume = 0.2;
 
+// Adjust volumes for new sounds if needed
+sounds.ragdollSpawn.volume = 0.5;
+sounds.ragdollDeath.volume = 0.5;
+sounds.tankSpawn.volume = 0.5;
+sounds.tankDeath.volume = 0.5;
+
 // Game Variables
 let player;
 let zombies = [];
@@ -69,13 +92,15 @@ let spawnRate = (config.initialSpawnRate - config.minSpawnRate) / 2 + config.min
 let spawnTimer = 0;
 let spawnRateDirection = -1;
 let gameTimer = 0;
-let numberRange = config.initialNumberRange;
 let canShoot = true; // Player can shoot initially
 let cooldownTimer = 0; // Timer to track cooldown
 let userInteracted = false; // Track if the user has interacted
 
+// Added zombieSpawnCount to keep track of total zombies spawned
+let zombieSpawnCount = 0;
+
 // Image Loading Variables
-let imagesToLoad = 5; // Number of images to load
+let imagesToLoad = 7; // Updated number of images to load
 let imagesLoadedCount = 0;
 
 // Player Object
@@ -145,18 +170,15 @@ player = {
 
 // Zombie Class
 class Zombie {
-    constructor(row) {
-        this.width = 40; // Adjust size as needed
+    constructor(row, type = 'regular', isTransformed = false, x = null) {
+        this.type = type;
+        this.width = 40; // Default size
         this.height = 40;
         this.row = row;
         const rowHeight = (config.canvasHeight - config.topPadding * 2) / config.numRows;
-        this.x = config.canvasWidth - this.width;
+        this.x = x !== null ? x : config.canvasWidth - this.width;
         this.y = config.topPadding + (row * rowHeight) + (rowHeight / 2);
-        this.speed = zombieSpeed + (randomIntFromInterval(0, 30) / 100);
-        this.problem = this.generateProblem();
-        this.answer = eval(this.problem);
-
-        // Animation properties
+        this.speed = zombieSpeed + (randomIntFromInterval(0, 20) / 100);
         this.state = 'alive';
         this.dyingAnimationTimer = 0;
         this.dyingAnimationDuration = 500; // Duration in milliseconds
@@ -165,27 +187,77 @@ class Zombie {
         this.bobbingSpeed = 0.05; // Adjust speed as needed
         this.bobbingOffset = 0;
         this.shouldRemove = false; // Flag for removal
+
+        // Adjust size for special zombie types
+        if (this.type === 'ragdoll' || this.type === 'tank') {
+            this.width *= 1.5; // Increase size by 50%
+            this.height *= 1.5;
+        }
+
+        // Adjust speed for special zombie types
+        if (this.type === 'ragdoll') {
+            this.speed = this.speed * .4;
+        }
+
+        if (this.type === 'tank') {
+            this.speed = this.speed * 1.05;
+        }
+
+        // Generate problem based on zombie type
+        this.generateProblem();
+
+        // Special properties for tank zombie transformation
+        this.isTransformed = isTransformed; // Indicates if the tank has transformed into a regular zombie
     }
 
     generateProblem() {
-        let num1, num2, operator, result;
-
-        do {
+        if (this.type === 'ragdoll') {
+            // Generate a formula with three numbers
             let operators = ['+', '-'];
-            operator = operators[Math.floor(Math.random() * operators.length)];
+            let operator1 = operators[Math.floor(Math.random() * operators.length)];
+            let operator2 = operators[Math.floor(Math.random() * operators.length)];
 
-            if (operator === '+') {
-                num1 = Math.floor(Math.random() * (numberRange + 1));
-                num2 = Math.floor(Math.random() * (numberRange + 1));
-            } else {
-                num1 = Math.floor(Math.random() * (numberRange + 1));
-                num2 = Math.floor(Math.random() * (num1 + 1)); // Ensure num2 <= num1
+            let num1, num2, num3, intermediaryResult, result;
+
+            num1 = randomIntFromInterval(config.minResult, config.maxResult);
+            if (operator1 === '+') {                                        
+                num2 = randomIntFromInterval(0, config.maxResult - num1);
+                intermediaryResult = num1 + num2;
+            } else {                    
+                num2 = randomIntFromInterval(0, num1);
+                intermediaryResult = num1 - num2;
             }
 
-            result = eval(`${num1} ${operator} ${num2}`);
-        } while (result < config.minResult || result > config.maxResult);
+            if (operator2 === '+') {                                        
+                num3 = randomIntFromInterval(0, config.maxResult - intermediaryResult);
+            } else {                    
+                num3 = randomIntFromInterval(0, intermediaryResult);
+            }
 
-        return `${num1} ${operator} ${num2}`;
+            result = eval(`${num1} ${operator1} ${num2} ${operator2} ${num3}`);
+
+            this.problem = `${num1} ${operator1} ${num2} ${operator2} ${num3}`;
+            this.answer = result;
+        } else {
+            // Regular formula generation
+            let num1, num2, operator, result;
+
+            let operators = ['+', '-'];
+            operator = operators[Math.floor(Math.random() * operators.length)];
+            
+            num1 = randomIntFromInterval(config.minResult, config.maxResult);
+
+            if (operator === '+') {                                        
+                num2 = randomIntFromInterval(0, config.maxResult - num1);
+            } else {                    
+                num2 = randomIntFromInterval(0, num1);
+            }
+
+            result = eval(`${num1} ${operator} ${num2}`);            
+
+            this.problem = `${num1} ${operator} ${num2}`;
+            this.answer = result;
+        }
     }
 
     update(deltaTime) {
@@ -195,8 +267,13 @@ class Zombie {
             // Update the dying animation timer
             this.dyingAnimationTimer += deltaTime;
             if (this.dyingAnimationTimer >= this.dyingAnimationDuration) {
-                // Mark zombie for removal
-                this.shouldRemove = true;                
+                if (this.type === 'tank' && !this.isTransformed) {
+                    // Transform into a regular zombie
+                    this.transformIntoRegularZombie();
+                } else {
+                    // Mark zombie for removal
+                    this.shouldRemove = true;
+                }
             } else {
                 // Increase the angle for toppling over
                 this.angle += (Math.PI / 2) * (deltaTime / this.dyingAnimationDuration);
@@ -223,8 +300,18 @@ class Zombie {
             ctx.rotate(this.angle);
         }
 
-        if (zombieImage.complete) {
-            ctx.drawImage(zombieImage, -this.width / 2, -this.height / 2, this.width, this.height);
+        // Select sprite based on zombie type
+        let imageToDraw;
+        if (this.type === 'ragdoll') {
+            imageToDraw = ragdollImage;
+        } else if (this.type === 'tank') {
+            imageToDraw = tankImage;
+        } else {
+            imageToDraw = zombieImage;
+        }
+
+        if (imageToDraw.complete) {
+            ctx.drawImage(imageToDraw, -this.width / 2, -this.height / 2, this.width, this.height);
         } else {
             ctx.fillStyle = 'green';
             ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
@@ -234,23 +321,39 @@ class Zombie {
 
         // Draw the problem text
         ctx.font = '14px Arial';
+        ctx.fillStyle = 'black';
+        ctx.textAlign = 'center';
         const text = `${this.problem} = ?`;
-        const textWidth = ctx.measureText(text).width;
-        const padding = 4;
-        const textX = this.x + this.width / 2 - textWidth / 2;
-        const textY = this.y - this.height / 2 + this.bobbingOffset - 5;
-        const rectX = textX - padding;
-        const rectY = textY - 14 - padding; // 14 is approx font size
-        const rectWidth = textWidth + padding * 2;
-        const rectHeight = 14 + padding * 2; // font size + padding top and bottom
+        const textX = this.x + this.width / 2;
+        const textY = this.y - this.height / 2 + this.bobbingOffset - 10 - 25;
 
-        // Draw background rectangle
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // Semi-transparent white
-        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+        // Draw background rectangle behind text
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        const textMetrics = ctx.measureText(text);
+        const padding = 4;
+        ctx.fillRect(
+            textX - textMetrics.width / 2 - padding,
+            textY - 14 - padding,
+            textMetrics.width + padding * 2,
+            14 + padding * 2
+        );
 
         // Draw the problem text
         ctx.fillStyle = 'black';
         ctx.fillText(text, textX, textY);
+    }
+
+    // Method to transform a tank zombie into a regular zombie
+    transformIntoRegularZombie() {
+        this.type = 'regular';
+        this.isTransformed = true;
+        this.state = 'alive';
+        this.angle = 0;
+        this.dyingAnimationTimer = 0;
+        this.dyingAnimationDuration = 500;
+        this.width = 40; // Reset to regular size
+        this.height = 40;
+        this.generateProblem(); // Generate a new problem
     }
 }
 
@@ -349,24 +452,35 @@ function submitAnswer() {
         if (answer === targetZombie.answer) {
             // Correct answer
             setTimeout(() => {
-                if (userInteracted) sounds.hit.play();
+                // Play death sound based on zombie type
+                if (userInteracted) {
+                    if (targetZombie.type === 'ragdoll') {
+                        sounds.ragdollDeath.play();
+                    } else if (targetZombie.type === 'tank' && !targetZombie.isTransformed) {
+                        sounds.tankDeath.play();
+                    } else {
+                        sounds.hit.play();
+                    }
+                }
             }, 100);
 
             // Start dying animation for the zombie
             targetZombie.state = 'dying';
             targetZombie.dyingAnimationTimer = 0;
 
-            // Add a blood splatter at the zombie's position
-            bloodSplatters.push(new Blood(
-                targetZombie.x + targetZombie.width / 2,
-                targetZombie.y - targetZombie.height / 2 + targetZombie.bobbingOffset,
-                targetZombie.width,
-                targetZombie.height
-            ));
+            // Add a blood splatter at the zombie's position (except for tank transforming)
+            if (!(targetZombie.type === 'tank' && !targetZombie.isTransformed)) {
+                bloodSplatters.push(new Blood(
+                    targetZombie.x + targetZombie.width / 2,
+                    targetZombie.y - targetZombie.height / 2 + targetZombie.bobbingOffset,
+                    targetZombie.width,
+                    targetZombie.height
+                ));
+            }
 
             // Increment score and update display
             score++;
-            scoreDisplay.textContent = `Score: ${score}`;
+            scoreDisplay.textContent = `Skóre: ${score}`;
         } else {
             // Incorrect answer
             setTimeout(() => {
@@ -424,7 +538,7 @@ function gameLoop(timestamp) {
         }
 
         // Spawn Zombies
-        if (spawnTimer > spawnRate) {
+        if (spawnTimer > spawnRate || zombies.length === 0) {
             spawnZombie();
             spawnTimer = 0;
         }
@@ -433,16 +547,14 @@ function gameLoop(timestamp) {
         if (gameTimer > config.difficultyIncreaseInterval) {
             zombieSpeed = Math.min(config.maxZombieSpeed, zombieSpeed + config.zombieSpeedIncrease);
 
-            if(spawnRate < config.minSpawnRate){
+            if (spawnRate < config.minSpawnRate) {
                 spawnRateDirection = 1;
-            }
-            else if(spawnRate > config.initialSpawnRate){
+            } else if (spawnRate > config.initialSpawnRate) {
                 spawnRateDirection = -1;
             }
-            
-            spawnRate = spawnRate + spawnRateDirection * config.spawnRateDecrease;
 
-            numberRange = Math.min(config.maxNumberRange, numberRange + config.numberRangeIncrease);
+            spawnRate = spawnRate + spawnRateDirection * config.spawnRateDecrease;
+            
             gameTimer = 0;
         }
 
@@ -509,7 +621,7 @@ function gameLoop(timestamp) {
 // Function to draw the row highlight
 function drawRowHighlight() {
     ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; // White with 80% opacity
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'; // White with 10% opacity
 
     const rowHeight = (config.canvasHeight - config.topPadding * 2) / config.numRows;
     const y = config.topPadding + (player.row * rowHeight);
@@ -536,9 +648,28 @@ function spawnZombie() {
 
     let row = availableRows[Math.floor(Math.random() * availableRows.length)];
 
-    zombies.push(new Zombie(row));
+    // Determine zombie type based on zombieSpawnCount
+    zombieSpawnCount++;
+    let zombieType = 'regular';
+
+    if (zombieSpawnCount % 12 === 0) {
+        zombieType = 'tank';
+    } else if (zombieSpawnCount % 5 === 0) {
+        zombieType = 'ragdoll';
+    }
+
+    let newZombie = new Zombie(row, zombieType);
+    zombies.push(newZombie);
+
+    // Play spawn sound based on zombie type
     if (userInteracted) {
-        sounds.spawn.play();
+        if (newZombie.type === 'ragdoll') {
+            sounds.ragdollSpawn.play();
+        } else if (newZombie.type === 'tank') {
+            sounds.tankSpawn.play();
+        } else {
+            sounds.spawn.play();
+        }
     }
 }
 
@@ -560,17 +691,17 @@ function restartGame() {
     bloodSplatters = [];
     score = 0;
     zombieSpeed = config.initialZombieSpeed;
-    spawnRate = config.initialSpawnRate;
+    spawnRate = (config.initialSpawnRate - config.minSpawnRate) / 2 + config.minSpawnRate;
     spawnTimer = 0;
-    gameTimer = 0;
-    numberRange = config.initialNumberRange;
+    spawnRateDirection = -1;
+    gameTimer = 0;    
     gameOver = false;
     canShoot = true;
     cooldownTimer = 0;
     player.row = 0;
     player.updatePosition();
     player.rotationAngle = 0; // Reset rotation
-    scoreDisplay.textContent = `Score: ${score}`;
+    scoreDisplay.textContent = `Skóre: ${score}`;
     gameOverText.style.display = 'none';
     restartBtn.style.display = 'none';
     focusInputBox();
@@ -596,24 +727,20 @@ function imageLoaded() {
     }
 }
 
+// Set onload handlers for all images
 playerImage.onload = imageLoaded;
 zombieImage.onload = imageLoaded;
+ragdollImage.onload = imageLoaded;
+tankImage.onload = imageLoaded;
 backgroundImage.onload = imageLoaded;
 targetImage.onload = imageLoaded;
 bloodImage.onload = imageLoaded;
 
-// Start Game after images are loaded
-if (playerImage.complete) imagesLoadedCount++;
-if (zombieImage.complete) imagesLoadedCount++;
-if (backgroundImage.complete) imagesLoadedCount++;
-if (targetImage.complete) imagesLoadedCount++;
-if (bloodImage.complete) imagesLoadedCount++;
-
-if (imagesLoadedCount === imagesToLoad) {
-    // All images are already loaded
-    player.updatePosition();
-    focusInputBox();
-    spawnZombie();
-    lastTimestamp = performance.now(); // Initialize lastTimestamp
-    requestAnimationFrame(gameLoop);
-}
+// Check if images are already loaded (from cache)
+if (playerImage.complete) playerImage.onload();
+if (zombieImage.complete) zombieImage.onload();
+if (ragdollImage.complete) ragdollImage.onload();
+if (tankImage.complete) tankImage.onload();
+if (backgroundImage.complete) backgroundImage.onload();
+if (targetImage.complete) targetImage.onload();
+if (bloodImage.complete) bloodImage.onload();
