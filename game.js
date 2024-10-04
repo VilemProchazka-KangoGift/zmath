@@ -200,7 +200,7 @@ class Zombie {
         }
 
         if (this.type === 'tank') {
-            this.speed = this.speed * 1.05;
+            this.speed = this.speed * 1.1;
         }
 
         // Generate problem based on zombie type
@@ -353,6 +353,7 @@ class Zombie {
         this.dyingAnimationDuration = 500;
         this.width = 40; // Reset to regular size
         this.height = 40;
+        this.speed = zombieSpeed + (randomIntFromInterval(0, 20) / 100)
         this.generateProblem(); // Generate a new problem
     }
 }
