@@ -19,14 +19,14 @@ import { FailedChallengeTracker } from './challenges/FailedChallengeTracker.ts';
 import { recordCzechCorrect, resetCzechHistory } from '../challenges/czechProvider.ts';
 
 const IMAGE_MANIFEST: Record<string, string> = {
-  player: '/assets/images/player.png',
-  zombie: '/assets/images/zombie.png',
-  ragdoll: '/assets/images/ragdoll.png',
-  tank: '/assets/images/tank.png',
-  background: '/assets/images/background.png',
-  target: '/assets/images/target.png',
-  blood: '/assets/images/blood.png',
-  lawnmower: '/assets/images/lawnmower.png',
+  player: 'assets/images/player.png',
+  zombie: 'assets/images/zombie.png',
+  ragdoll: 'assets/images/ragdoll.png',
+  tank: 'assets/images/tank.png',
+  background: 'assets/images/background.png',
+  target: 'assets/images/target.png',
+  blood: 'assets/images/blood.png',
+  lawnmower: 'assets/images/lawnmower.png',
 };
 
 function normalizeAnswer(s: string): string {

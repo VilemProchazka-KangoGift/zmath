@@ -109,7 +109,7 @@ export function AvatarPicker({
             data-testid={`avatar-${avatar.id}`}
           >
             <img
-              src={`/assets/images/${avatar.spriteKey}.png`}
+              src={`assets/images/${avatar.spriteKey}.png`}
               alt={avatar.name}
               width={48}
               height={48}
