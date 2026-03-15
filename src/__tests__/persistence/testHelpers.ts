@@ -1,0 +1,35 @@
+import type { SavedSettings } from '../../persistence/types.ts';
+
+export function makeSettings(overrides: Partial<SavedSettings> = {}): SavedSettings {
+  return {
+    soundEnabled: true,
+    volume: 1.0,
+    avatarId: 'default',
+    customAvatars: [],
+    zombieSpeedMultiplier: 1.0,
+    spawnRateMultiplier: 1.0,
+    missCooldownMs: 3000,
+    numRows: 6,
+    lawnmowersEnabled: true,
+    maxResult: 20,
+    minResult: 0,
+    failedChallengeRetryChance: 0.2,
+    failedChallengeCorrectToRemove: 3,
+    ragdollFrequency: 5,
+    tankFrequency: 12,
+    mathAddition: true,
+    mathSubtraction: true,
+    mathMultiplication: false,
+    mathDivision: false,
+    nasoblikaTables: [],
+    nasoblikaDivision: false,
+    czechEnabled: false,
+    czechLetters: [],
+    showBlood: true,
+    showTimer: true,
+    zombieSizeMultiplier: 1.0,
+    showRowHighlight: true,
+    laneLength: 800,
+    ...overrides,
+  };
+}

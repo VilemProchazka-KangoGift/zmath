@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  text-align: center;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 10px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+h1, h2 {
+  font-family: 'Creepster', cursive;
+  color: #4ade80;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(74, 222, 128, 0.3);
+  letter-spacing: 2px;
+}
+
+h1 {
+  font-size: 3rem;
+  margin: 20px 0;
+}
+
+canvas {
+  background-color: #111;
+  border: 3px solid #4ade80;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+}
+
+button {
+  cursor: pointer;
+  font-family: 'Inter', Arial, sans-serif;
+  transition: all 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+input[type="text"], input[type="range"] {
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+input[type="text"] {
+  background: #16213e;
+  border: 2px solid #4ade80;
+  border-radius: 8px;
+  color: #e0e0e0;
+  outline: none;
+}
+
+input[type="text"]:focus {
+  border-color: #86efac;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+input[type="text"]::placeholder {
+  color: #666;
+}

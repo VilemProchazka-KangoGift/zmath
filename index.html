@@ -1,64 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Math Zombies Game</title>
-    <style>
-        body {
-            text-align: center;
-            background-color: #f0f0f0;
-        }
-        canvas {
-            background-color: #ffffff;
-            border: 1px solid #000;
-            display: block;
-            margin: 0 auto;
-        }
-        #hud {
-            margin-top: 10px;
-        }
-        #inputBox {
-            width: 300px;
-            font-size: 30px;
-            text-align: center;
-        }
-        #scoreDisplay {
-            font-size: 40px;
-            margin-top: 10px;
-        }
-        #gameOver {
-            font-size: 24px;
-            color: red;
-            display: none;
-        }
-        #restartBtn {
-            font-size: 16px;
-            padding: 5px 10px;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Zombie Matika</h1>    
-        <b>&uarr;</b> - nahoru<br/>
-        <b>&darr;</b> - dolů<br/>
-        <b>Číslo + enter</b> - střela<br/>
-        <b>Správný výsledek</b> - +1 bod<br/>
-        <b>Špatný výsledek</b> - 3 vteřiny nelze střílet<br/>
-        <br/>
-    </ul>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <div id="hud">
-        <input type="text" id="inputBox" placeholder="Zadej výsledek">
-        <!-- Removed the "Shoot" button since shooting happens on Enter key -->
-        <div id="scoreDisplay">Skóre: 0</div>
-        <div id="gameOver">Konec hry!</div>
-        <button id="restartBtn">Znovu (klik nebo mezerník)</button>
-    </div>
-
-    <!-- Include config.js before game.js -->
-    <script src="config.js"></script>
-    <script src="game.js"></script>
-
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zombie Matika</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
